@@ -1,3 +1,5 @@
+import * as crypto from "node:crypto";
+
 /**
  * Converts a byte count into a human-readable string using binary units (KB, MB, GB, ...).
  *
@@ -39,3 +41,9 @@ export function formatSize(bytes: number, decimals: number = 2): string {
 }
 
 export default formatSize;
+
+import { v4 as uuidv4 } from "uuid";
+
+export function generateUUID() {
+    return uuidv4();
+}
