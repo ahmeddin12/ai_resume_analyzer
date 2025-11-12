@@ -1,9 +1,7 @@
 import {Link, useNavigate, useParams} from "react-router";
 import {useEffect, useState} from "react";
 import {usePuterStore} from "../../lib/puter";
-import Summary from "./Summary";
-import ATS from "./ATS";
-import Details from "./Details";
+
 
 export const meta = () => ([
     { title: 'Resumind | Review ' },
@@ -70,14 +68,11 @@ const Resume = () => {
                             </a>
                         </div>
                     )}
-                    Details       </section>
+                </section>
                 <section className="feedback-section">
                     <h2 className="text-4xl !text-black font-bold">Resume Review</h2>
                     {feedback ? (
                         <div className="flex flex-col gap-8 animate-in fade-in duration-1000">
-                            <Summary />
-                            <ATS />
-                            <Details  />
                         </div>
                     ) : (
                         <img src="/images/resume-scan-2.gif" className="w-full" />
