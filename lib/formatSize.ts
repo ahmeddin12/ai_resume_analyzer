@@ -16,6 +16,8 @@ import * as crypto from "node:crypto";
  * formatSize(1048576)      -> "1 MB"
  * formatSize(1073741824)   -> "1 GB"
  */
+import {type ClassValue, clsx} from "clsx";
+import {twMerge} from "tailwind-merge";
 export function formatSize(bytes: number, decimals: number = 2): string {
   if (!Number.isFinite(bytes) || bytes < 0) {
     throw new Error("formatSize: 'bytes' must be a non-negative finite number");
@@ -46,4 +48,7 @@ import { v4 as uuidv4 } from "uuid";
 
 export function generateUUID() {
     return uuidv4();
+}
+export function cn(...inputs: ClassValue[]) {
+    return twMerge(clsx(inputs))
 }
