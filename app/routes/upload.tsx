@@ -21,6 +21,7 @@ const Upload = () => {
 
     }
 
+
   const handleAnalyze = async ( {companyName, jobTitle, jobDescription, file} : {companyName:string, jobTitle: string, jobDescription: string, file: File}) => {
     setIsProcessing(true);
     setStatusText('Uploading the file...');
@@ -56,7 +57,7 @@ const Upload = () => {
 
     setStatusText('Analyzing... ');
 
-      // Use the uploaded PDF path determined above
+          // Use the uploaded PDF path determined above
       const feedback = await ai.feedback(
           uploadedPdfItem?.path,
           prepareInstructions({ jobTitle, jobDescription })
