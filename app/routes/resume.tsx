@@ -1,6 +1,9 @@
 import {Link, useNavigate, useParams} from "react-router";
 import {useEffect, useState} from "react";
 import {usePuterStore} from "../../lib/puter";
+import Summary from "../Components/Summary";
+import Details from "../Components/Details";
+import ATS from "../Components/ATS";
 
 
 export const meta = () => ([
@@ -22,26 +25,32 @@ const Resume = () => {
 
     useEffect(() => {
         const loadResume = async () => {
-            const resume = await kv.get(`resume:${id}`);
+            try {
+                const resume = await kv.get(`resume:${id}`);
+                if (!resume) return;
 
-            if(!resume) return;
+                const data = JSON.parse(resume);
 
-            const data = JSON.parse(resume);
+                if (!data?.resumePath) throw new Error('Missing resumePath in KV');
+                if (!data?.imagePath) throw new Error('Missing imagePath in KV');
 
-            const resumeBlob = await fs.read(data.resumePath);
-            if(!resumeBlob) return;
+                const resumeBlob = await fs.read(data.resumePath);
+                if (!resumeBlob) throw new Error('Failed to read resume PDF');
 
-            const pdfBlob = new Blob([resumeBlob], { type: 'application/pdf' });
-            const resumeUrl = URL.createObjectURL(pdfBlob);
-            setResumeUrl(resumeUrl);
+                const pdfBlob = new Blob([resumeBlob], { type: 'application/pdf' });
+                const resumeUrl = URL.createObjectURL(pdfBlob);
+                setResumeUrl(resumeUrl);
 
-            const imageBlob = await fs.read(data.imagePath);
-            if(!imageBlob) return;
-            const imageUrl = URL.createObjectURL(imageBlob);
-            setImageUrl(imageUrl);
+                const imageBlob = await fs.read(data.imagePath);
+                if (!imageBlob) throw new Error('Failed to read resume image');
+                const imageUrl = URL.createObjectURL(imageBlob);
+                setImageUrl(imageUrl);
 
-            setFeedback(data.feedback);
-            // console.log({resumeUrl, imageUrl, feedback: data.feedback });
+                setFeedback(data.feedback ?? null);
+                // console.log({resumeUrl, imageUrl, feedback: data.feedback });
+            } catch (err) {
+                console.error('Error loading resume:', err);
+            }
         }
 
         loadResume();
@@ -73,6 +82,11 @@ const Resume = () => {
                     <h2 className="text-4xl !text-black font-bold">Resume Review</h2>
                     {feedback ? (
                         <div className="flex flex-col gap-8 animate-in fade-in duration-1000">
+                            <Summary feedback={feedback} />
+                            {feedback?.ATS && (
+                                <ATS score={feedback.ATS.score} suggestions={feedback.ATS.tips} />
+                            )}
+                            <Details feedback={feedback} />
                         </div>
                     ) : (
                         <img src="/images/resume-scan-2.gif" className="w-full" />

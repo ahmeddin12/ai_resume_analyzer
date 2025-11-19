@@ -1,6 +1,7 @@
 import ScoreGauge from "./SourceGauge";
 import ScoreBadge from "./ScoreBadge";
 
+
 const Category = ({ title, score }: { title: string, score: number }) => {
     const textColor = score > 70 ? 'text-green-600'
         : score > 49

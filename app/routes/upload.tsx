@@ -36,28 +36,48 @@ const Upload = () => {
     setStatusText('Preparing data...');
 
       const uuid = generateUUID();
+
+      // Handle return shape from fs.upload which can be a single item or array
+      const uploadedPdfItem: any = Array.isArray(uploadedFile) ? uploadedFile[0] : uploadedFile;
+
+      // Upload preview image and capture its path
+      const uploadedImage = await fs.upload([imageFile.file]);
+      const uploadedImgItem: any = Array.isArray(uploadedImage) ? uploadedImage[0] : uploadedImage;
+
       const data = {
           id: uuid,
-          resumePath: uploadedFile.path,
+          resumePath: uploadedPdfItem?.path,
+          imagePath: uploadedImgItem?.path,
           companyName, jobTitle, jobDescription,
           feedback: '',
       }
-      await kv.set(`resume: ${uuid}`, JSON.stringify(data));
+      // Store under a consistent KV key
+      await kv.set(`resume:${uuid}`, JSON.stringify(data));
 
     setStatusText('Analyzing... ');
 
+      // Use the uploaded PDF path determined above
       const feedback = await ai.feedback(
-          uploadedFile.path,
+          uploadedPdfItem?.path,
           prepareInstructions({ jobTitle, jobDescription })
       );
 
       if (!feedback) return setStatusText('Error: Failed to analyze resume');
 
-      const feedbackText = typeof feedback.message.content === 'string'
-          ? feedback.message.content
-          : feedback.message.content[0].text;
+      // Safely parse the AI response into JSON; fall back to raw content
+      let feedbackObj: any = null;
+      try {
+          const content = feedback.message?.content;
+          const feedbackText = typeof content === 'string'
+              ? content
+              : (Array.isArray(content) ? (content.find((c: any) => c?.text)?.text ?? '') : '');
+          feedbackObj = feedbackText ? JSON.parse(feedbackText) : { raw: content };
+      } catch (e) {
+          console.warn('Feedback not valid JSON, storing raw text');
+          feedbackObj = { raw: feedback?.message?.content };
+      }
 
-      data.feedback = JSON.parse(feedbackText);
+      data.feedback = feedbackObj;
       await kv.set(`resume:${uuid}`, JSON.stringify(data));
       setStatusText('Analysis complete, redirecting...');
       console.log(data);
